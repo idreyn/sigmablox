@@ -1,0 +1,70 @@
+html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    background-color: #EEE;
+    font-family: monospace;
+    font-size: 30px;
+}
+
+.tile {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	user-select: none;
+	margin: 0.1em;
+	transition: 0.1s margin;
+}
+
+.tile-drag-placeholder {
+	opacity: 0.5;
+}
+
+.tile:hover {
+	cursor: pointer;
+	border-radius: 3px;
+	background: rgba(0, 0, 0, 0.1);
+	margin: 0.2em;
+}
+
+.tile-empty {
+	height: 1em;
+	width: 1em;
+}
+
+.tile-empty-bubble {
+	height: 100%;
+	width: 100%;
+	background: rgba(255, 0, 0, 0.2);
+}
+
+.tile-fraction {
+	display: flex;
+	flex-direction: column;
+}
+
+.tile-fraction > * {
+	width: 100%;
+	padding: 0px;
+}
+
+.tile-fraction-bar {
+	height: 0.05em;
+	background: #000;
+}
+
+.tile-sup, .tile-sub {
+	flex-direction: row;
+	align-items: normal;
+}
+
+.tile-sup > * {
+	margin: 0;
+}
+
+.tile-sup > * {
+	margin: 0.1em;
+}
+
