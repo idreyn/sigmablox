@@ -1,5 +1,5 @@
 {
     "presets": ["react", "es2016"],
-    "plugins": ["transform-decorators"],
+    "plugins": ["transform-object-rest-spread"],
     "only": ["js"]
 }

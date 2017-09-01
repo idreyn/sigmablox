@@ -1,11 +1,10 @@
-const React = require("react");
+const React = require("react"); 
 const classNames = require("classNames");
-const {DragSource, DropTarget, DragDropContext} = require("react-dnd");
-const HTML5Backend = require("react-dnd-html5-backend");
+const {DragSource, DropTarget} = require("react-dnd");
 
 const DRAG_TYPE = "TILE";
 
-const renderExpn = (expn, refresh, i=0, onReplace=null) => {
+const renderExpn = (expn, handlers, isRoot = true, i = 0) => {
 	if (expn.type) {
 		const Tile = {
 			"+": InfixOf("+"),
@@ -18,13 +17,12 @@ const renderExpn = (expn, refresh, i=0, onReplace=null) => {
 			"value": Value
 		}[expn.type];
 		return <Tile
-			isRoot={onReplace === null}
-			key={i}
+			{...handlers}
 			expn={expn}
-			onReplaceExpn={onReplace}
-			refresh={refresh}
+			isRoot={isRoot}
+			key={i}
 			children={expn.operands.map(
-				(e, i) => renderExpn(e, refresh, i, expn.replaceOf(i))
+				(e, i) => renderExpn(e, handlers, false, i)
 			)}
 		/>;
 	}
@@ -34,36 +32,40 @@ const renderExpn = (expn, refresh, i=0, onReplace=null) => {
 const TileKind = (name, render) => DropTarget(
 	DRAG_TYPE,
 	{
-		drop({onReplaceExpn, expn}, monitor) {
+		drop({expn, onReplaceExpn}, monitor) {
 			if (!monitor.didDrop()) {
-				return {replaceMe: onReplaceExpn, targetExpn: expn};
+				return {
+					replaceMe: (replacement) => 
+						onReplaceExpn(expn, replacement),
+					targetExpn: expn,
+				};
 			}
 		},
 		canDrop({expn}, monitor) {
-			return expn.type === "empty" && !monitor.getItem().expn.hasChild(expn);
+			return (
+				expn.type === "empty" && 
+				!monitor.getItem().expn.hasChild(expn)
+			);
 		},
 	},
 	(connect, monitor) => {
 		return {
 			connectDropTarget: connect.dropTarget(),
 			isOver: monitor.isOver({shallow: true}),
+			canDrop: monitor.canDrop(),
 		};
 	}
 )(DragSource(
 	DRAG_TYPE,
 	{
 		beginDrag({expn}) {
-			console.log("beginDrag");
 			return {expn};
 		},
-		endDrag({expn, onReplaceExpn, refresh}, monitor) {
+		endDrag({expn, onRemoveExpn}, monitor) {
 			if (monitor.didDrop()) {
 				const {replaceMe, targetExpn} = monitor.getDropResult();
 				if (targetExpn !== expn) {
-					console.log("here we are going far to save all that we love", expn);
 					replaceMe(expn);
-					onReplaceExpn(null);
-					refresh();
 				}
 			}
 		},
@@ -83,12 +85,21 @@ const TileKind = (name, render) => DropTarget(
 			// Regular ol' props
 			const {overrideSize} = this.props;
 			// react-dnd props
-			const {connectDragSource, connectDropTarget, isOver} = this.props;
+			const {
+				connectDragSource,
+				connectDropTarget,
+			} = this.props;
+			const {
+				canDrop,
+				isDragging,
+				isOver,
+			} = this.props;
 			return connectDropTarget(connectDragSource(<div
 				className={classNames(
 					"tile",
 					"tile-" + name,
-					isOver && "tile-over"
+					isOver && canDrop && "tile-drop-accept",
+					isDragging && "tile-dragging",
 				)}
 				style={overrideSize}
 				onDragStart={this.handleMouseDown}
@@ -150,12 +161,4 @@ const Sup = TileKind(
 	]
 );
 
-const Container = DragDropContext(HTML5Backend)(class extends React.Component {
-	render() {
-		return <div>
-			{this.props.children}
-		</div>;
-	}
-});
-
-module.exports = {renderExpn, Container};
+module.exports = {renderExpn};

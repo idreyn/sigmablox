@@ -12,12 +12,23 @@ function expn(type, ...operands) {
 	return {
 		type,
 		operands,
-		replaceOf(i) {
-			return sub => {
-				this.operands = this.operands.map(
-					(o, j) => i === j ? (sub || expn("empty")) : o
-				);
-			}
+		replace(target, replacement, removeReplacement = true) {
+			return expn(
+				this.type,
+				...this.operands.map(
+					o => {
+						if(o === target) {
+							return replacement
+						} else if (o === replacement) {
+							return expn("empty");
+						} else {
+							return o.replace ? 
+								o.replace(target, replacement) :
+								o;
+						}
+					}
+				)
+			);
 		},
 		hasChild(e) {
 			return e === this || this.operands.filter(
@@ -30,5 +41,6 @@ function expn(type, ...operands) {
 }
 
 module.exports = {
+	expn,
 	parse: (str) => parseS(parse(str))
 };

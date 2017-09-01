@@ -12,6 +12,7 @@
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-plugin-transform-decorators": "^6.24.1",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-preset-es2016": "^6.24.1",
     "babel-preset-react": "^6.24.1",
     "babelify": "^7.3.0",
@@ -21,6 +22,8 @@
     "underscore": "^1.8.3"
   },
   "dependencies": {
-    "react-dnd-html5-backend": "^2.4.1"
+    "react-dnd-html5-backend": "^2.4.1",
+    "react-redux": "^5.0.6",
+    "redux": "^3.7.2"
   }
 }

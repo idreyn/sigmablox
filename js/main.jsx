@@ -1,26 +1,27 @@
 const React = require("react");
 const {render} = require("react-dom");
-const _ = require("underscore");
-
-const {parse} = require("./expression.js");
-const {Container, renderExpn} = require("./components.jsx");
+const {createStore} = require("redux");
 
 require("browserify-css");
 require("../css/style.css");
+
+const {expnEditor} = require("./actions.js");
+const {Container} = require("./views/container.jsx");
 
 function doRender() {
     render(<App/>, appRoot);
 }
 
-const expn = parse(`
-	(+ 3 (frac 4 (- 6 (empty))))
-`);
-
 class App extends React.Component {
+	constructor() {
+		super();
+		this.state = {
+			store: createStore(expnEditor),
+		};
+	}
+
     render() {
-        return <Container>
-        	{renderExpn(expn, doRender)}
-        </Container>;
+        return <Container store={this.state.store}/>;
     }
 }
 
@@ -29,5 +30,3 @@ document.addEventListener("DOMContentLoaded", function() {
     appRoot = document.getElementById("root");
     doRender();
 });
-
-window.expn = expn;
