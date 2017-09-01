@@ -15,16 +15,14 @@ function expn(type, ...operands) {
 		replaceOf(i) {
 			return sub => {
 				this.operands = this.operands.map(
-					(o, j) => i === j ? sub : o
+					(o, j) => i === j ? (sub || expn("empty")) : o
 				);
 			}
 		},
-		removeOf(i) {
-			return () => {
-				const empty = expn("empty");
-				this.replaceOf(i)(empty);
-				return empty;
-			}
+		hasChild(e) {
+			return e === this || this.operands.filter(
+				(o) => o.hasChild? o.hasChild(e) : false
+			).length > 0;
 		},
 		get left() { return operands[0]; },
 		get right() { return operands[1]; },

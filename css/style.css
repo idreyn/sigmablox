@@ -22,12 +22,17 @@ html, body {
 	opacity: 0.5;
 }
 
+.tile-over {
+	border: 1px solid #0DD;
+}
+
 .tile:hover {
 	cursor: pointer;
 	border-radius: 3px;
 	background: rgba(0, 0, 0, 0.1);
 	margin: 0.2em;
 }
+
 
 .tile-empty {
 	height: 1em;
