@@ -83,7 +83,7 @@ const TileKind = (name, render) => DropTarget(
 	class extends React.Component {
 		render() {
 			// Regular ol' props
-			const {overrideSize} = this.props;
+			const {cursor, expn} = this.props;
 			// react-dnd props
 			const {
 				connectDragSource,
@@ -100,8 +100,8 @@ const TileKind = (name, render) => DropTarget(
 					"tile-" + name,
 					isOver && canDrop && "tile-drop-accept",
 					isDragging && "tile-dragging",
+					cursor.currentExpn === expn && "tile-cursor",
 				)}
-				style={overrideSize}
 				onDragStart={this.handleMouseDown}
 				onMouseUp={this.handleMouseUp}
 				ref={(me) => this.element = me}

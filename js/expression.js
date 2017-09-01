@@ -1,14 +1,16 @@
-const parse = require("s-expression");
+const sParse = require("s-expression");
 
-function parseS(i) {
+const sExpnToExpn = (i) => {
 	if (i instanceof Array) {
-		return expn(i[0], ...i.slice(1).map(parseS));
+		return expn(i[0], ...i.slice(1).map(sExpnToExpn));
 	} else {
 		return expn("value", i);
 	}
 }
 
-function expn(type, ...operands) {
+const parse = (str) => sExpnToExpn(sParse(str))
+
+const expn = (type, ...operands) => {
 	return {
 		type,
 		operands,
@@ -23,8 +25,7 @@ function expn(type, ...operands) {
 							return expn("empty");
 						} else {
 							return o.replace ? 
-								o.replace(target, replacement) :
-								o;
+								o.replace(target, replacement) : o;
 						}
 					}
 				)
@@ -35,12 +36,7 @@ function expn(type, ...operands) {
 				(o) => o.hasChild? o.hasChild(e) : false
 			).length > 0;
 		},
-		get left() { return operands[0]; },
-		get right() { return operands[1]; },
 	};
 }
 
-module.exports = {
-	expn,
-	parse: (str) => parseS(parse(str))
-};
+module.exports = {expn, parse}

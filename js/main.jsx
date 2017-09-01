@@ -18,6 +18,7 @@ class App extends React.Component {
 		this.state = {
 			store: createStore(expnEditor),
 		};
+		window.c = this.state.store.getState().cursor;
 	}
 
     render() {
