@@ -81,6 +81,12 @@ const TileKind = (name, render) => DropTarget(
 	}
 )(
 	class extends React.Component {
+		handleMouseDown(e) {
+			const {onSelectExpn, expn} = this.props;
+			e.stopPropagation();
+			onSelectExpn(expn);
+		}
+
 		render() {
 			// Regular ol' props
 			const {cursor, expn} = this.props;
@@ -100,10 +106,9 @@ const TileKind = (name, render) => DropTarget(
 					"tile-" + name,
 					isOver && canDrop && "tile-drop-accept",
 					isDragging && "tile-dragging",
-					cursor.currentExpn === expn && "tile-cursor",
+					cursor.expn === expn && "tile-cursor",
 				)}
-				onDragStart={this.handleMouseDown}
-				onMouseUp={this.handleMouseUp}
+				onMouseDown={this.handleMouseDown.bind(this)}
 				ref={(me) => this.element = me}
 			>
 				{render(this.props)}

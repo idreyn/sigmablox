@@ -4,105 +4,80 @@ const RelativeCursorBehavior = {
 	NAVIGATE_WITHIN_ONLY: "NAVIGATE_WITHIN_ONLY",
 };
 
-const cursorBehaviorForExpression = (expr) =>
-	expr.type === "value" ?
+const cursorBehaviorForExpression = (expn) =>
+	expn.type === "value" ?
 		RelativeCursorBehavior.NAVIGATE_AROUND_ONLY :
 		RelativeCursorBehavior.NAVIGATE_AROUND;
 
-const makeCursor = (
-	currentExpn,
-	operandIndex = 0,
-	getSuperPredecessor,
-	getSuperSuccessor
-) => ({
-	currentExpn,
-	operandIndex,
-	returnHere() {
-		return this;
-	},
-	previousOperand() {
-		return currentExpn.operands[operandIndex - 1];
-	},
-	currentOperand() {
-		return currentExpn.operands[operandIndex];
-	},
-	atStart(index) {
-		const behavior = cursorBehaviorForExpression(currentExpn);
-		index = index || operandIndex;
-		if (index !== 0) {
-			return false;
+const makeCursorView = (expn, parent, index, isFirst, isLast) => {
+	let view = {
+		expn,
+		parent,
+		isFirst,
+		isLast,
+		index
+	};
+	view.children = !expn.atomic && (function() {
+		const childViews = expn.operands.map(
+			(o, i) => makeCursorView(
+				o,
+				view,
+				i,
+				i === 0,
+				i === expn.operands.length - 1
+			)
+		);
+		for (let i=0; i<childViews.length; i++) {
+			childViews[i].nextSibling = childViews[i+1];
+			childViews[i].prevSibling = childViews[i-1];
 		}
-		return true;
-	},
-	atEnd(index) {
-		const behavior = cursorBehaviorForExpression(currentExpn);
-		index = index || operandIndex;
-		if (index < currentExpn.operands.length) {
-			return false;
-		}
-		return true;
-	},
-	// Successor without any possibility of entering operands
-	simpleSuccessorFor(index) {
-		return (function() {
-			if (this.atEnd(index)) {
-				return getSuperSuccessor();
+		return childViews;
+	})();
+	if (!parent) {
+		view.prevSibling = view;
+		view.nextSibling = view;
+	}
+	return view;
+};
+
+const findViewForExpn = (expn, root) => {
+	if (root.expn === expn) {
+		return root;
+	} else {
+		for (let i=0; i<root.children.length; i++) {
+			const foundView = findViewForExpn(expn, root.children[i]);
+			if (foundView) {
+				return foundView;
 			}
-			return makeCursor(
-				currentExpn,
-				index + 1,
-				getSuperPredecessor,
-				getSuperSuccessor
-			);
-		}).bind(this);
-	},
-	successor() {
-		if (this.atEnd()) {
-			return getSuperSuccessor();
-		}
-		if (cursorBehaviorForExpression(
-			this.currentOperand()
-		) === RelativeCursorBehavior.NAVIGATE_AROUND_ONLY) {
-			return this.simpleSuccessorFor(operandIndex)();
-		} else {
-			return makeCursor(
-				this.currentOperand(),
-				0,
-				this.returnHere.bind(this),
-				this.simpleSuccessorFor(operandIndex)
-			);
-		}
-	},
-	simplePredecessorFor(index) {
-		return (function() {
-			if (this.atStart(index)) {
-				return getSuperPredecessor();
-			}
-			return makeCursor(
-				currentExpn,
-				index - 1,
-				getSuperPredecessor,
-				getSuperSuccessor
-			);
-		}).bind(this);
-	},
-	predecessor() {
-		if (this.atStart()) {
-			return getSuperPredecessor();
-		}
-		if (cursorBehaviorForExpression(
-			this.previousOperand()
-		) === RelativeCursorBehavior.NAVIGATE_AROUND_ONLY) {
-			return this.simplePredecessorFor(operandIndex)();
-		} else {
-			return makeCursor(
-				this.previousOperand(),
-				this.previousOperand().operands.length - 1,
-				this.simplePredecessorFor(operandIndex),
-				this.returnHere.bind(this)
-			);
 		}
 	}
-});
+	return null;
+};
 
-module.exports = {makeCursor};
+const makeCursor = (view) => {
+	const {expn, parent, index, 
+		isFirst, isLast, children, nextSibling, prevSibling} = view;
+	return {
+		expn,
+		parent,
+		successor() {
+			let nextView;
+			if (children && children.length > 0) {
+				nextView = children[0];
+			} else if (isLast) {
+				nextView = (function() {
+					let next = view;
+					do { next = next.parent; } while(next.isLast);
+					return next;
+				})().nextSibling;
+			}
+			nextView = nextView || nextSibling || view;
+			return makeCursor(nextView);
+		},
+		predecessor() {
+			return makeCursor(prevSibling || parent || view);
+		}
+	}
+};
+
+module.exports = {makeCursor, makeCursorView, findViewForExpn};

@@ -14,12 +14,18 @@ const expn = (type, ...operands) => {
 	return {
 		type,
 		operands,
+		atomic: type === "value",
+		identity: Symbol(),
+		identify(x) {
+			this.identity = x;
+			return this;
+		},
 		replace(target, replacement, removeReplacement = true) {
 			return expn(
 				this.type,
 				...this.operands.map(
 					o => {
-						if(o === target) {
+						if (o === target) {
 							return replacement
 						} else if (o === replacement) {
 							return expn("empty");
@@ -29,7 +35,7 @@ const expn = (type, ...operands) => {
 						}
 					}
 				)
-			);
+			).identify(this.identity);
 		},
 		hasChild(e) {
 			return e === this || this.operands.filter(

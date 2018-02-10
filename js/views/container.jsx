@@ -4,7 +4,7 @@ const {connect, Provider} = require("react-redux");
 const {DragDropContext} = require("react-dnd");
 const HTML5Backend = require("react-dnd-html5-backend");
 
-const {replaceExpn, removeExpn, cursorPred, cursorSucc} = require("../actions.js");
+const {replaceExpn, removeExpn, selectExpn, cursorPred, cursorSucc} = require("../actions.js");
 const {renderExpn} = require("./components.jsx");
 
 const mapStateToProps = state => ({
@@ -15,6 +15,9 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
 	onReplaceExpn: (target, replacement) => {
 		dispatch(replaceExpn(target, replacement));
+	},
+	onSelectExpn: (target) => {
+		dispatch(selectExpn(target));
 	},
 	onRemoveExpn: (target) => {
 		dispatch(removeExpn(target));
@@ -42,10 +45,10 @@ const Container = connect(
 	}
 
 	render() {
-		const {expn, cursor, store, onReplaceExpn, onRemoveExpn} = this.props;
+		const {expn, cursor, store, onReplaceExpn, onRemoveExpn, onSelectExpn} = this.props;
 		return <div onKeyDown={this.handleKeyDown.bind(this)} tabIndex="0">
 			<Provider store={store}>
-				{renderExpn(expn, {onReplaceExpn, onRemoveExpn, cursor})}
+				{renderExpn(expn, {onReplaceExpn, onRemoveExpn, onSelectExpn, cursor})}
 			</Provider>
 		</div>;
 	}
